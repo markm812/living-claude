@@ -1,6 +1,6 @@
 # living-claude
 
-While a turn runs, a pixel band sits above the prompt: one of Sprout's fourteen
+While a turn runs, a pixel band sits above the prompt: one of Sprout's nineteen
 guild classes, drawn at random and animated until the turn ends.
 
 Each class is a 48x16 pixel scene over a 32 frame loop, painted into a terminal
@@ -8,8 +8,9 @@ Each class is a 48x16 pixel scene over a 32 frame loop, painted into a terminal
 prompt, keeps its class for the whole turn (a prompt typed over a running turn
 does not swap it), and closes when the turn answers.
 
-The fourteen: Sprout, Miner, Hauler, Swordsman, Wizard, Archer, Smith, Cook,
-Bard, Fisherman, Sailor, Bartender, Farmer, Wagoner.
+The nineteen: Sprout, Miner, Hauler, Swordsman, Wizard, Archer, Smith, Cook,
+Bard, Fisherman, Sailor, Bartender, Farmer, Wagoner, Carpenter, Guard, Jeweler,
+Messenger, Dancer.
 
 ## Install
 

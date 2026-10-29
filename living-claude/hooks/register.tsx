@@ -12,7 +12,7 @@ const LOWER = 0x2584 // fg paints the bottom pixel, so the top can stay the term
 const CLEAR = 0x01000000 // the terminal's own colour, and only ever a background
 
 // Sprout's Guild: every scene is 48x16 pixels over a 32 frame loop, so one
-// geometry and one palette serve all fourteen.
+// geometry and one palette serve all nineteen.
 const SPRITE_W = 48
 const SPRITE_H = 16
 const FRAMES = 32
@@ -64,6 +64,7 @@ const clearEyes = (s: Ink): void => { for (const [x, y] of [[5, 7], [5, 8], [10,
 const clearMouth = (s: Ink): void => { s(7, 10, 'o'); s(8, 10, 'o') }
 const clearSprout = (s: Ink): void => { for (const [x, y] of [[8, 1], [9, 1], [10, 1], [7, 2], [8, 2], [7, 3]] as const) s(x, y, '.') }
 const happyEyes = (pts: Pts): void => pts('k', [[5, 7], [4, 8], [6, 8], [10, 7], [9, 8], [11, 8]])
+const smile = (pts: Pts): void => pts('k', [[5, 10], [10, 10], [6, 11], [7, 11], [8, 11], [9, 11]])
 const cheeks = (pts: Pts): void => pts('p', [[3, 9], [12, 9]])
 const blink = (s: Ink, pts: Pts): void => { clearEyes(s); pts('d', [[4, 8], [5, 8], [6, 8], [9, 8], [10, 8], [11, 8]]) }
 const BL = (s: Ink, pts: Pts, t: number, a = 20): void => { if (t === a || t === a + 1) blink(s, pts) }
@@ -439,6 +440,127 @@ export const MASCOTS: readonly [Mascot, ...Mascot[]] = [
       else if (t < 16) pts('k', [[0, 7], [0, 6], [1, 5], [1, 4], [2, 3]])
       else pts('k', [[0, 7], [0, 6], [1, 5], [1, 4]])
       for (let x = 0; x < 48; x++) { const h = 9 + Math.round(2 * Math.sin(x / 5)); for (let y = h; y < 15; y++) AE('G', [[x, y]]) }
+    },
+  },
+  {
+    name: 'Carpenter',
+    scene: (s, pts, g, t, A, AR, AE, body) => {
+      body(12)
+      AR('b', 1, 11, 9, 14); AR('B', 1, 12, 9, 12); AR('B', 1, 14, 9, 14); A(1, 11, 'B'); A(9, 13, 'B')
+      AR('s', 2, 2, 8, 2); A(1, 1, 'b'); A(1, 2, 'b'); [[3, 3], [5, 3], [7, 3]].forEach(([x, y]) => A(x, y, 'S'))
+      AR('b', 26, 10, 42, 11); AR('B', 27, 12, 27, 14); AR('B', 41, 12, 41, 14); AR('h', 27, 8, 40, 9); A(31, 8, 'b'); A(36, 9, 'b')
+      AR('b', 0, 15, 47, 15); for (let x = 0; x < 48; x += 6) A(x, 15, 'B')
+      clearSprout(s); BL(s, pts, t, 6); R(s, 'b', 5, 2, 10, 2); R(s, 'b', 4, 3, 11, 3); R(s, 'B', 3, 4, 12, 4); pts('y', [[13, 5], [13, 6]]); R(s, 'B', 3, 11, 12, 11); pts('y', [[7, 11], [8, 11]])
+      if (t < 12) {
+        const v = t % 4 < 2 ? 0 : 1
+        AR('s', 28, 3 + v, 28, 9); A(27, 2 + v, 'b'); A(28, 2 + v, 'b'); pts('o', [[14, 5 + v], [15, 4 + v]])
+        if (t >= 6) A(28, 8, 'B'); if (t >= 10) A(28, 9, 'B'); if (t % 2) AE('h', [[26 + (t % 3), 12], [30, 7]])
+      } else {
+        A(28, 8, 'B'); A(28, 9, 'B'); AR('s', 31, 7, 37, 7); A(38, 7, 'b')
+        if (t < 22) {
+          const p = t - 12
+          if (p % 4 >= 2) { R(s, 'b', 14, 4, 14, 7); R(s, 'S', 13, 7, 15, 7); if (p % 4 === 2) AE('y', [[28, 6], [26, 5]]) }
+          else { R(s, 'b', 14, 3, 14, 6); R(s, 'S', 13, 2, 15, 2) }
+          if (p < 2) { A(27, 6, 's'); A(27, 7, 's') } else if (p < 6) A(27, 7, 's'); else A(27, 8, 'S')
+        } else {
+          const p = t - 22
+          A(27, 8, 'S'); pts('o', [[14, 8], [14, 9]]); clearEyes(s); happyEyes(pts); if (p >= 5) cheeks(pts)
+          AE('h', [[27 + p, 6 - (p >> 2)], [29 + p, 8 - (p >> 1)], [26 + p * 2, 5]])
+        }
+      }
+    },
+  },
+  {
+    name: 'Guard',
+    scene: (s, pts, g, t, A, AR, AE, body) => {
+      body(10)
+      AR('g', 0, 0, 8, 14); [[1, 2], [4, 2], [7, 2], [2, 5], [1, 8], [4, 8], [7, 8], [3, 11], [6, 11]].forEach(([x, y]) => A(x, y, 'S'))
+      AR('S', 30, 0, 47, 14); AR('k', 33, 2, 44, 14); [34, 37, 40, 43].forEach(x => AR('S', x, 2, x, 14)); [5, 9, 13].forEach(y => AR('S', 33, y, 44, y)); A(32, 1, 'g'); A(45, 1, 'g')
+      A(6, 4, 'b'); A(6, 5, 'b'); A(6, 3, t % 2 ? 'y' : 'r'); if (t % 4 < 2) A(6, 2, 'r')
+      AR('S', 0, 15, 47, 15); for (let x = 3; x < 48; x += 5) A(x, 15, 'g')
+      clearSprout(s); pts('r', [[7, 1], [8, 0], [8, 1], [9, 1]]); R(s, 's', 4, 2, 11, 2); R(s, 's', 3, 3, 12, 3); R(s, 's', 2, 4, 13, 4); R(s, 'n', 4, 11, 11, 12); pts('y', [[7, 11], [8, 11]])
+      const scare = t >= 16 && t < 24
+      const sp = scare ? -1 : (t >= 24 && t < 28 ? t % 2 : 0)
+      R(s, 'b', 15, 2 + sp, 15, 14); pts('s', [[15, sp], [15, 1 + sp]]); s(14, 8, 'o')
+      if (t < 8) BL(s, pts, t, 4)
+      else if (t < 16) { blink(s, pts); pts('k', [[7, 9], [8, 9], [7, 10], [8, 10]]); if (t >= 10) AE('m', [[22, 5 - ((t >> 1) % 3)], [23, 3 - ((t >> 2) % 2)]]) }
+      else if (scare) {
+        pts('w', [[4, 7], [9, 7]]); pts('k', [[5, 7], [4, 8], [5, 8], [10, 7], [9, 8], [10, 8], [7, 10], [8, 10], [7, 11], [8, 11]])
+        const mx = 44 - (t - 16) * 3
+        AR('g', mx, 14, mx + 2, 14); A(mx, 13, 'g'); AE('g', [[mx + 3, 13]])
+      }
+      else if (t >= 28) { pts('o', [[12, 6], [13, 5]]); clearEyes(s); happyEyes(pts) }
+      else if (t % 2) AE('g', [[23, 14], [26, 13]])
+    },
+  },
+  {
+    name: 'Jeweler',
+    scene: (s, pts, g, t, A, AR, AE, body, IE) => {
+      body(12)
+      AR('b', 0, 4, 9, 4); AR('r', 1, 2, 3, 3); AR('n', 5, 2, 8, 3); A(2, 2, 'y'); A(6, 2, 'y')
+      AR('b', 0, 9, 9, 9); [2, 5, 8].forEach(x => { AR('y', x, 7, x + 1, 8); A(x, 7, 'w') })
+      AR('L', 30, 6, 44, 6); AR('L', 44, 7, 44, 12); AR('B', 29, 13, 45, 14); AR('P', 31, 11, 43, 12); A(33, 10, 'r'); A(41, 10, 'y'); if (t % 8 < 2) A(33, 9, 'w'); else if (t % 8 < 4) A(41, 9, 'w')
+      AR('B', 0, 15, 47, 15); for (let x = 2; x < 48; x += 5) A(x, 15, 'b')
+      clearSprout(s); R(s, 'P', 4, 11, 11, 12); pts('y', [[7, 11], [7, 12]]); BL(s, pts, t, 2); pts('s', [[9, 6], [10, 6], [11, 6], [9, 9], [10, 9], [11, 9], [12, 7], [12, 8]])
+      const gem = (x: number, y: number, c: string): void => { pts(c, [[x, y], [x + 1, y], [x, y + 1], [x + 1, y + 1]]); s(x, y, 'w') }
+      if (t < 8) { gem(14, 4, 'm'); pts('o', [[14, 6], [15, 6]]) }
+      else if (t < 16) { gem(14, 5, 'm'); const o = t % 2; pts('w', [[13 + o, 4], [14 + o, 4], [16 - o, 7]]); s(13, 7, 'o') }
+      else if (t < 24) {
+        gem(14, 5, t % 2 ? 'L' : 'm'); clearEyes(s); happyEyes(pts)
+        const near: readonly P[] = [[17, 4], [13, 3], [17, 8], [12, 7]]
+        const far: readonly P[] = [[16, 2], [18, 6], [13, 8], [17, 3]]
+        IE('y', [near[t % 4] ?? [17, 4], far[(t + 2) % 4] ?? [16, 2]])
+      }
+      else {
+        const p = t - 24
+        pts('o', [[14, 7], [15, 7]])
+        if (p < 7) { const gx = 27 + Math.round(p * 1.5); AR('m', gx, 8, gx + 1, 9); A(gx, 8, 'w') }
+        else { AR('m', 37, 9, 38, 10); A(37, 9, 'w'); AE('y', [[36, 8], [40, 8]]); clearEyes(s); happyEyes(pts); cheeks(pts) }
+      }
+    },
+  },
+  {
+    name: 'Messenger',
+    scene: (s, pts, g, t, A, AR, AE, body, IE) => {
+      const run = t < 12
+      body(14, run ? t % 2 : 0)
+      AR('b', 3, 4, 3, 14); AR('h', 1, 5, 6, 5); A(7, 5, 'h'); A(6, 4, 'h'); A(6, 6, 'h'); AR('h', 2, 8, 6, 8); A(1, 8, 'h'); A(2, 7, 'h'); A(2, 9, 'h')
+      AR('h', 35, 6, 47, 14); AR('B', 34, 5, 47, 5); AR('B', 36, 3, 46, 4); AR('B', 39, 1, 43, 2); AR('B', 40, 10, 42, 14); A(41, 12, 'y'); AR('L', 37, 8, 38, 9); AR('L', 44, 8, 45, 9)
+      AR('r', 29, 9, 32, 10); AR('b', 30, 11, 31, 14)
+      if (t >= 28) { A(33, 8, 'y'); A(33, 9, 'y') } else A(33, 10, 'y')
+      const cx = (t >> 1) % 48
+      AE('w', [[cx, 1], [cx + 1, 1], [cx + 2, 1], [cx + 1, 0]]); AR('y', 8, 0, 9, 1)
+      AR('g', 0, 15, 47, 15); for (let x = 1; x < 48; x += 6) A(x, 15, 'S')
+      clearSprout(s); R(s, 'r', 5, 2, 10, 2); R(s, 'r', 4, 3, 11, 3); R(s, 'r', 3, 4, 12, 4); pts('w', [[11, 1], [12, 0], [12, 1]]); pts('b', [[3, 8], [3, 9], [4, 10], [5, 11], [6, 12], [7, 12]]); R(s, 'b', 9, 11, 12, 12); s(10, 11, 'B')
+      if (run) { IE('w', [[-3, 6], [-2, 6], [-4, 8], [-3, 8], [-2, 10]]); IE('g', [[-1, 14], [0, 13 + (t % 2)]]); clearMouth(s); pts('k', [[7, 10], [8, 10]]) }
+      else if (t < 20) { const p = t - 12; clearEyes(s); pts('k', [[5, 8], [10, 8]]); pts('k', [[7, 10], [8, 10], [7, 11], [8, 11]]); s(12, 2 + (p % 4), 'L') }
+      else if (t < 28) {
+        const p = t - 20
+        pts('y', [[12, 8], [13, 7], [14, 7], [15, 6], [15, 7], [15, 5]]); s(12, 9, 'o'); clearMouth(s); pts('k', [[7, 10], [8, 10]])
+        const n = (ny: number, x: number): void => IE('k', [[x, ny], [x, ny + 1], [x - 1, ny + 2], [x, ny + 2], [x + 1, ny]])
+        n(4 - (p % 8), 17); if (p >= 3) n(6 - ((p + 4) % 8), 21)
+      }
+      else { pts('o', [[13, 8], [14, 8]]); pts('w', [[15, 7], [16, 7], [15, 8], [16, 8]]); s(15, 8, 'r'); clearEyes(s); happyEyes(pts); cheeks(pts) }
+    },
+  },
+  {
+    name: 'Dancer',
+    scene: (s, pts, g, t, A, AR, AE, body, IE) => {
+      const leap = t >= 16 && t < 24
+      const bow = t >= 24
+      const dy = leap ? -([0, 1, 2, 3, 3, 2, 1, 0][t - 16] ?? 0) : (bow && t >= 27 ? 1 : 0)
+      body(16 + (t < 8 ? SW(t) : 0), dy)
+      AR('r', 0, 0, 4, 13); AR('r', 43, 0, 47, 13); [1, 3, 44, 46].forEach(x => AR('d', x, 0, x, 13)); [[3, 7], [4, 7], [43, 7], [44, 7]].forEach(([x, y]) => A(x, y, 'y'))
+      AR('k', 5, 0, 42, 0); for (let i = 0; i < 9; i++) A(7 + i * 4, 1, ['y', 'r', 'm'][(i + (t >> 2)) % 3] ?? 'y')
+      AR('b', 0, 15, 47, 15); for (let x = 2; x < 48; x += 4) A(x, 15, 'B')
+      clearSprout(s); pts('r', [[4, 2], [5, 1], [6, 2], [5, 3]]); s(5, 2, 'y'); pts('P', [[3, 9], [4, 10], [5, 11], [6, 12], [7, 12]])
+      if (t < 8) { clearEyes(s); happyEyes(pts); pts('p', t % 4 < 2 ? [[14, 6], [15, 5], [16, 4], [17, 4]] : [[14, 6], [15, 6], [16, 5], [17, 5]]) }
+      else if (t < 16) {
+        if (t % 4 >= 2) { clearEyes(s); clearMouth(s) } else { clearEyes(s); happyEyes(pts) }
+        for (let i = 0; i < 5; i++) { const a = t * 0.8 + i * 0.45; IE(i < 2 ? 'p' : 'r', [[Math.round(8 + 8 * Math.cos(a)), Math.round(7 + 5 * Math.sin(a))]]) }
+      }
+      else if (leap) { clearEyes(s); happyEyes(pts); pts('p', [[14, 8], [15, 9], [16, 10], [17, 11], [18, 11]]); IE('y', [[-2, 10 + (t % 3)], [17, 13]]) }
+      else { blink(s, pts); clearMouth(s); smile(pts); cheeks(pts); pts('p', [[14, 9], [15, 10], [16, 10]]); for (let i = 0; i < 7; i++) AE(['y', 'r', 'm', 'p'][i % 4] ?? 'y', [[(i * 7 + t * 2) % 48, (t * 2 + i * 5) % 14]]) }
     },
   },
 ]

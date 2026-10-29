@@ -9,7 +9,7 @@
     {
       "name": "living-claude",
       "source": "./living-claude",
-      "description": "While a turn runs, a pixel band above the prompt: one of Sprout's fourteen guild classes, picked at random."
+      "description": "While a turn runs, a pixel band above the prompt: one of Sprout's 19 guild classes, picked at random."
     }
   ]
 }

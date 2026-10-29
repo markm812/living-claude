@@ -55,8 +55,8 @@ test('the pane draws the scene, and no cell inks a half block in the default col
 })
 
 test('every class draws all thirty-two frames on the grid the band expects', () => {
-  expect(MASCOTS.length).toBe(14)
-  expect(new Set(MASCOTS.map(m => m.name)).size).toBe(14)
+  expect(MASCOTS.length).toBe(19)
+  expect(new Set(MASCOTS.map(m => m.name)).size).toBe(19)
 
   for (const m of MASCOTS) {
     const frames = framesOf(m)
