@@ -14,7 +14,8 @@ Each is a 48x16 pixel scene over a 32 frame loop, painted into a terminal
 ## Install
 
 ```
-claude plugin install living-claude@mods
+claude plugin marketplace add markm812/living-claude
+claude plugin install living-claude@markm812
 ```
 
 Terminal only. Any other surface gets a line of text instead.

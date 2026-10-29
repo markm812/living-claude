@@ -14,7 +14,8 @@ Bard, Fisherman, Sailor, Bartender, Farmer, Wagoner.
 ## Install
 
 ```
-claude plugin install living-claude@mods
+claude plugin marketplace add markm812/living-claude
+claude plugin install living-claude@markm812
 ```
 
 Terminal only. Any other surface gets a line of text instead, and so does a pane

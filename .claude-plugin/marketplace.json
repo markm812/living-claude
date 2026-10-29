@@ -1,0 +1,15 @@
+{
+  "name": "markm812",
+  "description": "Claude Code plugins by markm812",
+  "owner": {
+    "name": "markm812",
+    "url": "https://github.com/markm812"
+  },
+  "plugins": [
+    {
+      "name": "living-claude",
+      "source": "./living-claude",
+      "description": "While a turn runs, a pixel band above the prompt: one of Sprout's fourteen guild classes, picked at random."
+    }
+  ]
+}
