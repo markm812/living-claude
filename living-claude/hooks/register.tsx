@@ -525,6 +525,7 @@ export const register: Register = on => {
   let timer: Timer | null = null
   let pick: Mascot = MASCOTS[0]
   let shown = false
+  let held = false
   let t = 0
 
   const stop = () => {
@@ -532,6 +533,7 @@ export const register: Register = on => {
     timer = null
     view = null
     shown = false
+    held = false
     t = 0
   }
 
@@ -569,11 +571,33 @@ export const register: Register = on => {
     return next(e)
   })
 
+  // An answered turn is closed by `classic.Stop` below, which alone sees what
+  // is still in flight; an interrupt or a refusal may raise no `Stop` at all.
+  // shortcut: a turn that dies on an API error drops the band with work still
+  // running, because `StopFailure` carries no `background_tasks`; revisit if
+  // the stub ever adds one.
   on('turn.complete', async ($, e, next) => {
     const ended = await next(e)
-    if (e.agentId === undefined) {
+    if (e.agentId === undefined && e.reason !== 'answer') {
       stop()
       await $.ui.close({ id: PANE })
+    }
+
+    return ended
+  })
+
+  // Holding the band while background work runs is the whole point: the turn's
+  // own end closed it over live shells, subagents and workflows.
+  // shortcut: one `Stop` of grace, so work the engine never clears — a parked
+  // dev server, an MCP monitor — costs one turn and not the session; bound it
+  // on the work itself if the stub ever carries `background_tasks` off `Stop`.
+  on('classic.Stop', async ($, e, next) => {
+    const ended = await next(e)
+    if (e.agent_id === undefined) {
+      if (held || (e.background_tasks?.length ?? 0) === 0) {
+        stop()
+        await $.ui.close({ id: PANE })
+      } else held = true
     }
 
     return ended

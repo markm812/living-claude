@@ -116,7 +116,7 @@ test('a surface without a Raster says so', async ($, on) => {
   await ui.unmount()
 })
 
-test("the person's prompt opens the pane on a class and the turn's end closes it", async ($, on) => {
+test("the person's prompt opens the pane on a class, and the band outlasts the turn while background work runs", async ($, on) => {
   const opened: string[] = []
   const titles: string[] = []
   const closed: string[] = []
@@ -134,6 +134,7 @@ test("the person's prompt opens the pane on a class and the turn's end closes it
   })
   on('prompt.submit', (_: any, e: any) => ({ text: e.text }))
   on('turn.complete', (_: any, e: any) => ({ text: e.answer }))
+  on('classic.Stop', () => ({}))
   on('session.start', (_: any, e: any) => ({ cwd: e.cwd }))
 
   await $.session.start({ cwd: '/', surface: 'terminal', isInteractive: true })
@@ -148,6 +149,74 @@ test("the person's prompt opens the pane on a class and the turn's end closes it
     isAborted: false,
     reason: 'answer',
   } as any)
+  expect(closed).toEqual([])
+
+  const shell = [{ id: 'b1', type: 'shell', status: 'running', description: 'a build' }]
+  await $.classic.Stop({ stop_hook_active: false, background_tasks: shell } as any)
+  expect(closed).toEqual([])
+
+  await $.classic.Stop({ stop_hook_active: false, background_tasks: [] } as any)
+  expect(closed).toEqual(['living-claude'])
+})
+
+test('work the engine never clears costs the band one turn, not the session', async ($, on) => {
+  const closed: string[] = []
+  beneath(on)
+  on('ui.open', () => ({ value: { isPlaced: true } }))
+  on('ui.close', (_: any, e: any) => {
+    closed.push(e.id)
+
+    return { value: undefined }
+  })
+  on('prompt.submit', (_: any, e: any) => ({ text: e.text }))
+  on('classic.Stop', () => ({}))
+  on('session.start', (_: any, e: any) => ({ cwd: e.cwd }))
+  const parked = [{ id: 'b1', type: 'shell', status: 'running', description: 'a dev server' }]
+
+  await $.session.start({ cwd: '/', surface: 'terminal', isInteractive: true })
+  await $.prompt.submit({ text: 'start the server' } as any)
+  await $.classic.Stop({ stop_hook_active: false, background_tasks: parked } as any)
+  expect(closed).toEqual([])
+
+  await $.classic.Stop({ stop_hook_active: false, background_tasks: parked } as any)
+  expect(closed).toEqual(['living-claude'])
+})
+
+test("a Stop raised inside a subagent leaves the main turn's band up", async ($, on) => {
+  const closed: string[] = []
+  beneath(on)
+  on('ui.open', () => ({ value: { isPlaced: true } }))
+  on('ui.close', (_: any, e: any) => {
+    closed.push(e.id)
+
+    return { value: undefined }
+  })
+  on('prompt.submit', (_: any, e: any) => ({ text: e.text }))
+  on('classic.Stop', () => ({}))
+  on('session.start', (_: any, e: any) => ({ cwd: e.cwd }))
+
+  await $.session.start({ cwd: '/', surface: 'terminal', isInteractive: true })
+  await $.prompt.submit({ text: 'delegate it' } as any)
+  await $.classic.Stop({ stop_hook_active: false, agent_id: 'a1', background_tasks: [] } as any)
+  expect(closed).toEqual([])
+})
+
+test('an interrupted turn closes the band, which raises no Stop to close it', async ($, on) => {
+  const closed: string[] = []
+  beneath(on)
+  on('ui.open', () => ({ value: { isPlaced: true } }))
+  on('ui.close', (_: any, e: any) => {
+    closed.push(e.id)
+
+    return { value: undefined }
+  })
+  on('prompt.submit', (_: any, e: any) => ({ text: e.text }))
+  on('turn.complete', (_: any, e: any) => ({ text: e.answer }))
+  on('session.start', (_: any, e: any) => ({ cwd: e.cwd }))
+
+  await $.session.start({ cwd: '/', surface: 'terminal', isInteractive: true })
+  await $.prompt.submit({ text: 'haul something' } as any)
+  await $.turn.complete({ turnId: 't1', answer: '', durationMs: 10, isAborted: true, reason: 'aborted' } as any)
   expect(closed).toEqual(['living-claude'])
 })
 
@@ -168,9 +237,13 @@ test('a prompt queued over a running turn keeps the band it has, and the turn it
   on('prompt.submit', (_: any, e: any) => ({ text: e.text }))
   on('turn.start', (_: any, e: any) => ({ turnId: e.turnId }))
   on('turn.complete', (_: any, e: any) => ({ text: e.answer }))
+  on('classic.Stop', () => ({}))
   on('session.start', (_: any, e: any) => ({ cwd: e.cwd }))
-  const ends = (turnId: string) =>
-    $.turn.complete({ turnId, answer: 'done', durationMs: 10, isAborted: false, reason: 'answer' } as any)
+  // An answered turn is closed by its Stop, not by turn.complete.
+  const ends = async (turnId: string) => {
+    await $.turn.complete({ turnId, answer: 'done', durationMs: 10, isAborted: false, reason: 'answer' } as any)
+    await $.classic.Stop({ stop_hook_active: false, background_tasks: [] } as any)
+  }
 
   await $.session.start({ cwd: '/', surface: 'terminal', isInteractive: true })
   await $.prompt.submit({ text: 'first' } as any)
